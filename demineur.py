@@ -90,7 +90,7 @@ def creation_grille(longueur, largeur, nb_bombes):
     for i in range(longueur):  # création d'une grille de longueur x largeur
         grille.append([0])
         for j in range(largeur - 1):
-            grille[-1].append(0)
+            grille[i].append(0)
 
     i = 0
     while i < nb_bombes:  # on place nb_bombes bombes
@@ -105,9 +105,10 @@ def creation_grille(longueur, largeur, nb_bombes):
 
     return grille
 
-def cases_adjascentes(x, y):
+def cases_adjacentes(x, y):
     '''
-    Parcours les cases adjascentes a une case pour tester le nombre de bombes adjascentes ou pour connaitre les cases vides adjascentes.
+    Parcours les cases adjacentes a une case pour tester le nombre de bombes adjacentes ou pour connaitre les 
+    cases vides adjacentes.
     
     Parameters
     ----------
@@ -119,14 +120,11 @@ def cases_adjascentes(x, y):
     Returns
     -------
     list
-        Une liste contenant le nombre de bombes adjascentes et une liste des cases vides adjascentes.
+        Une liste contenant le nombre de bombes adjacentes et une liste des cases vides adjacentes.
     '''
-    try:                    # annule si la case est en dehors de la grille
-        grille[x][y]
-    except IndexError:
-        pass
+    
     nb_bombes = 0
-    cases_vides = []        # liste des cases vides adjascentes, qui serront testés après
+    cases_vides = []        # liste des cases vides adjacentes, qui serront testés après
     for i in range(-1, 2):  # parcours les cases autours pour connaitre leurs état
     	for j in range(-1, 2):
     	    if y+i >= 0 and x+j >= 0:
@@ -142,7 +140,7 @@ def cases_adjascentes(x, y):
 
 def reveler(co: list):
     '''
-    Fonction appelée quand une case est cliquée. Elle changera le status de la case et révèlera ses cases adjascentes (si la case est vide);
+    Fonction appelée quand une case est cliquée. Elle changera le status de la case et révèlera ses cases adjacentes (si la case est vide);
 
     Parameters
     ----------
@@ -157,7 +155,7 @@ def reveler(co: list):
     y = co[1]
     
     if grille[x][y] == 0:
-    	cases_adj = cases_adjascentes(x, y)
+    	cases_adj = cases_adjacentes(x, y)
     	if cases_adj[0] > 0:
     	    grille[x][y] = cases_adj[0] * -1
     	else:
