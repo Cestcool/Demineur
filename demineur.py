@@ -290,6 +290,42 @@ def win():
         clock.tick(60)
         
     reset()
+    
+def afficher_regles():
+    '''
+    Affiche un écran contenant les règles du jeu.
+    '''
+    fenetre.fill((255, 255, 255))  # fond blanc
+
+    lignes = [
+        "RÈGLES DU DÉMINEUR",
+        "",
+        "- Le but est de révéler toutes les cases sans mines.",
+        "- Clic gauche : révéler une case.",
+        "- Clic droit : poser/enlever un drapeau.",
+        "- Les nombres indiquent le nombre de mines adjacentes.",
+        "- Gagne si toutes les cases sans mines sont révélées.",
+        "- Perds si tu cliques sur une mine.",
+        "",
+        "Appuie sur ESPACE pour revenir au jeu."
+    ]
+
+    for i, ligne in enumerate(lignes):
+        texte = font.render(ligne, True, (0, 0, 0))
+        fenetre.blit(texte, (20, 30 + i * 35))
+
+    pygame.display.flip()
+
+    en_attente = True
+    while en_attente:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    en_attente = False
+
+    clock.tick(30)
 
 def reset():
     '''
@@ -327,6 +363,10 @@ while running:                          # Boucle de jeu
                 x_case = x // taille_case
                 y_case = y // taille_case
                 gerer_clic_droit(x_case, y_case)  # Appeler la fonction qui gère le clic
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_h:  # touche H pour aide
+                afficher_regles()
+
 
     dessiner_grille()
     afficher_chronometre()
