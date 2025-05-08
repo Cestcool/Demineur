@@ -70,6 +70,9 @@ game_over_image = pygame.transform.scale(game_over_image, (largeur * taille_case
 win_screen = pygame.image.load("assets/win.png")
 win_screen = pygame.transform.scale(win_screen, (largeur * taille_case, hauteur * taille_case))
 
+regles = pygame.image.load("assets/regles.jpg")
+regles = pygame.transform.scale(regles, (largeur * taille_case, hauteur * taille_case))
+
 def creation_grille(longueur, largeur, nb_bombes):
     '''
     Parameters
@@ -290,6 +293,25 @@ def win():
         clock.tick(60)
         
     reset()
+    
+def afficher_regles():
+    '''
+    Affiche un écran contenant les règles du jeu.
+    '''
+    fenetre.blit(regles, (0, 0))
+
+    pygame.display.flip()
+
+    en_attente = True
+    while en_attente:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    en_attente = False
+
+    clock.tick(30)
 
 def reset():
     '''
@@ -327,6 +349,10 @@ while running:                          # Boucle de jeu
                 x_case = x // taille_case
                 y_case = y // taille_case
                 gerer_clic_droit(x_case, y_case)  # Appeler la fonction qui gère le clic
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_h:  # touche H pour aide
+                afficher_regles()
+
 
     dessiner_grille()
     afficher_chronometre()
