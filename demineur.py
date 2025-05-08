@@ -8,7 +8,7 @@ hauteur = 10
 nb_mines = 11
 taille_case = 60
 
-# pygame setup
+# setup
 pygame.init()
 fenetre = pygame.display.set_mode((largeur*taille_case, hauteur*taille_case))
 pygame.display.set_caption("Démineur")
@@ -18,6 +18,10 @@ pygame.font.init()
 font = pygame.font.SysFont("Arial", 30)
 start_time = None
 chrono_lance = False
+in_menu = True  # État du jeu : menu ou partie en cours
+play_button_rect = None
+rules_button_rect = None
+quitter_button_rect = None
 
 # Import files
 spr_emptyGrid = pygame.transform.scale(pygame.image.load("assets/empty.png"), (taille_case, taille_case))
@@ -36,6 +40,10 @@ spr_grid_num = [spr_grid1, spr_grid2, spr_grid3, spr_grid4, spr_grid5, spr_grid6
 game_over_image = pygame.transform.scale(pygame.image.load("assets/game_over.png"), (largeur * taille_case, hauteur * taille_case))
 win_screen = pygame.transform.scale(pygame.image.load("assets/win.png"), (largeur * taille_case, hauteur * taille_case))
 regles = pygame.transform.scale(pygame.image.load("assets/regles.jpg"), (largeur * taille_case, hauteur * taille_case))
+play_button = pygame.transform.scale(pygame.image.load("assets/play.jpg"), (528*0.4, 200*0.4)) # dimension originales * resize
+rules_button = pygame.transform.scale(pygame.image.load("assets/bouton_regles.jpg"), (528*0.4, 200*0.4)) # dimension originales * resize
+titre = pygame.transform.scale(pygame.image.load("assets/titre.jpg"), (873*0.7, 220*0.7)) # dimension originales * resize
+quitter_button = pygame.transform.scale(pygame.image.load("assets/quitter.jpg"), (528*0.4, 200*0.4)) # dimension originales * resize
 
 def sauvegarder_partie(nom_fichier="sauvegarde.csv"):
     with open(nom_fichier, mode='w', newline='') as fichier:
@@ -56,6 +64,24 @@ def charger_partie(nom_fichier="sauvegarde.csv"):
         grille = []
         for ligne in data[1:]:
             grille.append([int(val) for val in ligne])
+
+def afficher_menu():
+    """
+    Affiche le menu de démarrage avec un bouton pour lancer le jeu
+    """
+    fenetre.fill((194, 194, 194))
+    
+    # Positionnement et affichage des boutons
+    play_button_rect = play_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*2-40))
+    fenetre.blit(play_button, play_button_rect)
+    rules_button_rect = rules_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*3-70))
+    fenetre.blit(rules_button, rules_button_rect)
+    quitter_button_rect = quitter_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*4-100))
+    fenetre.blit(quitter_button, quitter_button_rect)
+    fenetre.blit(titre, (-1, 20))
+    
+    pygame.display.flip()
+    return play_button_rect, rules_button_rect, quitter_button_rect  # Retourne le rectangle du bouton pour détecter les clics
 
 def creation_grille(largeur, hauteur, nb_bombes):
     '''
@@ -298,50 +324,64 @@ def afficher_regles():
 def reset():
     '''
     Recommence le jeu.
-
-    Returns
-    -------
-    None.
     '''
-    global grille, start_time, chrono_lance     # variable globale car return ne marche pas
-    grille = creation_grille(largeur, hauteur, nb_mines)
+    global grille, start_time, chrono_lance, in_menu # Ajout de in_menu
+    grille = None
     start_time = None
     chrono_lance = False
-
+    in_menu = True  # Retour au menu après reset
     fenetre.fill("black")
     pygame.display.flip()
     
-while running:                          # Boucle de jeu
+# Boucle principale
+while running:
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:   # Si l'utilisateur ferme la fenêtre
+        if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Clic gauche
-                x, y = event.pos
-                # Calcul de la case sur laquelle on a cliqué
-                x_case = x // taille_case
-                y_case = y // taille_case
-                if not chrono_lance:
-                    chrono_lance = True
-                    start_time = pygame.time.get_ticks()
-                reveler([x_case, y_case])  # Appeler la fonction qui gère le clic
-            if event.button == 3:  # Clic droit
-                x, y = event.pos
-                # Calcul de la case sur laquelle on a cliqué
-                x_case = x // taille_case
-                y_case = y // taille_case
-                gerer_clic_droit(x_case, y_case)  # Appeler la fonction qui gère le clic
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_h:  # touche H pour aide
-                afficher_regles()
-            if event.key == pygame.K_s:  # touche S pour sauvegarder
-                sauvegarder_partie()
-            if event.key == pygame.K_l:  # touche L pour charger
-                charger_partie()
+        
+        if in_menu:
+            # Gestion des événements dans le menu
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if play_button_rect and play_button_rect.collidepoint(event.pos):
+                    in_menu = False  # Sortie du menu
+                    grille = creation_grille(largeur, hauteur, nb_mines)  # Initialisation du jeu
+                if rules_button_rect and rules_button_rect.collidepoint(event.pos):
+                    afficher_regles()
+                if quitter_button_rect and quitter_button_rect.collidepoint(event.pos):
+                    exit()
+        else:
+            # Gestion des événements dans le jeu (code existant)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Clic gauche
+                    x, y = event.pos
+                    x_case = x // taille_case
+                    y_case = y // taille_case
+                    if not chrono_lance:
+                        chrono_lance = True
+                        start_time = pygame.time.get_ticks()
+                    reveler([x_case, y_case])
+                if event.button == 3:  # Clic droit
+                    x, y = event.pos
+                    x_case = x // taille_case
+                    y_case = y // taille_case
+                    gerer_clic_droit(x_case, y_case)
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h:  # touche H pour aide
+                    afficher_regles()
+                if event.key == pygame.K_s:  # touche S pour sauvegarder
+                    sauvegarder_partie()
+                if event.key == pygame.K_l:  # touche L pour charger
+                    charger_partie()
+    
+    # Affichage selon l'état du jeu
+    if in_menu:
+        play_button_rect, rules_button_rect, quitter_button_rect = afficher_menu()
+    else:
+        dessiner_grille()
+        afficher_chronometre()
+        pygame.display.flip()
+    
+    clock.tick(60)
 
-
-
-    dessiner_grille()
-    afficher_chronometre()
-    pygame.display.flip()   # rafraichi l'écran
-    clock.tick(60)  # 60 rafraichissement par seconde
+pygame.quit()
