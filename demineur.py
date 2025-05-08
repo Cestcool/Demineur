@@ -19,7 +19,6 @@ font = pygame.font.SysFont("Arial", 30)
 start_time = None
 chrono_lance = False
 
-
 # Import files
 spr_emptyGrid = pygame.transform.scale(pygame.image.load("assets/empty.png"), (taille_case, taille_case))
 spr_flag = pygame.transform.scale(pygame.image.load("assets/flag.png"), (taille_case, taille_case))
@@ -157,8 +156,6 @@ def reveler(co: list):
 
 grille = creation_grille(largeur, hauteur, nb_mines)
 start_time = pygame.time.get_ticks()
-
-# PYGAME
 
 # Fonction pour dessiner la grille
 def dessiner_grille():
