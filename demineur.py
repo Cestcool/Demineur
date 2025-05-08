@@ -21,58 +21,22 @@ chrono_lance = False
 
 
 # Import files
-spr_emptyGrid = pygame.image.load("assets/empty.png")
-spr_emptyGrid = pygame.transform.scale(spr_emptyGrid, (taille_case, taille_case))
-
-spr_flag = pygame.image.load("assets/flag.png")
-spr_flag = pygame.transform.scale(spr_flag, (taille_case, taille_case))
-
-spr_grid = pygame.image.load("assets/Grid.png")
-spr_grid = pygame.transform.scale(spr_grid, (taille_case, taille_case))
-
-spr_grid1 = pygame.image.load("assets/grid1.png")
-spr_grid1 = pygame.transform.scale(spr_grid1, (taille_case, taille_case))
-
-spr_grid2 = pygame.image.load("assets/grid2.png")
-spr_grid2 = pygame.transform.scale(spr_grid2, (taille_case, taille_case))
-
-spr_grid3 = pygame.image.load("assets/grid3.png")
-spr_grid3 = pygame.transform.scale(spr_grid3, (taille_case, taille_case))
-
-spr_grid4 = pygame.image.load("assets/grid4.png")
-spr_grid4 = pygame.transform.scale(spr_grid4, (taille_case, taille_case))
-
-spr_grid5 = pygame.image.load("assets/grid5.png")
-spr_grid5 = pygame.transform.scale(spr_grid5, (taille_case, taille_case))
-
-spr_grid6 = pygame.image.load("assets/grid6.png")
-spr_grid6 = pygame.transform.scale(spr_grid6, (taille_case, taille_case))
-
-spr_grid7 = pygame.image.load("assets/grid7.png")
-spr_grid7 = pygame.transform.scale(spr_grid7, (taille_case, taille_case))
-
-spr_grid8 = pygame.image.load("assets/grid8.png")
-spr_grid8 = pygame.transform.scale(spr_grid8, (taille_case, taille_case))
-
-spr_mine = pygame.image.load("assets/mine.png")
-spr_mine = pygame.transform.scale(spr_mine, (taille_case, taille_case))
-
-spr_mineClicked = pygame.image.load("assets/mineClicked.png")
-spr_mineClicked = pygame.transform.scale(spr_mineClicked, (taille_case, taille_case))
-
-spr_mineFalse = pygame.image.load("assets/mineFalse.png")
-spr_mineFalse = pygame.transform.scale(spr_mineFalse, (taille_case, taille_case))
-
+spr_emptyGrid = pygame.transform.scale(pygame.image.load("assets/empty.png"), (taille_case, taille_case))
+spr_flag = pygame.transform.scale(pygame.image.load("assets/flag.png"), (taille_case, taille_case))
+spr_grid = pygame.transform.scale(pygame.image.load("assets/Grid.png"), (taille_case, taille_case))
+spr_grid1 = pygame.transform.scale(pygame.image.load("assets/grid1.png"), (taille_case, taille_case))
+spr_grid2 = pygame.transform.scale(pygame.image.load("assets/grid2.png"), (taille_case, taille_case))
+spr_grid3 = pygame.transform.scale(pygame.image.load("assets/grid3.png"), (taille_case, taille_case))
+spr_grid4 = pygame.transform.scale(pygame.image.load("assets/grid4.png"), (taille_case, taille_case))
+spr_grid5 = pygame.transform.scale(pygame.image.load("assets/grid5.png"), (taille_case, taille_case))
+spr_grid6 = pygame.transform.scale(pygame.image.load("assets/grid6.png"), (taille_case, taille_case))
+spr_grid7 = pygame.transform.scale(pygame.image.load("assets/grid7.png"), (taille_case, taille_case))
+spr_grid8 = pygame.transform.scale(pygame.image.load("assets/grid8.png"), (taille_case, taille_case))
+spr_mine = pygame.transform.scale(pygame.image.load("assets/mine.png"), (taille_case, taille_case))
 spr_grid_num = [spr_grid1, spr_grid2, spr_grid3, spr_grid4, spr_grid5, spr_grid6, spr_grid7, spr_grid8]
-
-game_over_image = pygame.image.load("assets/game_over.png")
-game_over_image = pygame.transform.scale(game_over_image, (largeur * taille_case, hauteur * taille_case))
-
-win_screen = pygame.image.load("assets/win.png")
-win_screen = pygame.transform.scale(win_screen, (largeur * taille_case, hauteur * taille_case))
-
-regles = pygame.image.load("assets/regles.jpg")
-regles = pygame.transform.scale(regles, (largeur * taille_case, hauteur * taille_case))
+game_over_image = pygame.transform.scale(pygame.image.load("assets/game_over.png"), (largeur * taille_case, hauteur * taille_case))
+win_screen = pygame.transform.scale(pygame.image.load("assets/win.png"), (largeur * taille_case, hauteur * taille_case))
+regles = pygame.transform.scale(pygame.image.load("assets/regles.jpg"), (largeur * taille_case, hauteur * taille_case))
 
 def sauvegarder_partie(nom_fichier="sauvegarde.csv"):
     with open(nom_fichier, mode='w', newline='') as fichier:
@@ -94,7 +58,7 @@ def charger_partie(nom_fichier="sauvegarde.csv"):
         for ligne in data[1:]:
             grille.append([int(val) for val in ligne])
 
-def creation_grille(longueur, largeur, nb_bombes):
+def creation_grille(largeur, hauteur, nb_bombes):
     '''
     Parameters
     ----------
@@ -111,15 +75,15 @@ def creation_grille(longueur, largeur, nb_bombes):
         Liste de liste contenant toutes les cases (grille[x][y] où x et y sont les coordonés)
     '''
     grille = []
-    for i in range(longueur):  # création d'une grille de longueur x largeur
+    for i in range(largeur):  # création d'une grille de longueur x largeur
         grille.append([0])
         for j in range(largeur - 1):
             grille[i].append(0)
 
     i = 0
     while i < nb_bombes:  # on place nb_bombes bombes
-        x = randint(0, 9)
-        y = randint(0, 9)
+        x = randint(0, largeur-1)
+        y = randint(0, hauteur-1)
         if grille[x][y] == 0:
             grille[x][y] = 2
         else:  # si la bombe est déjà placée, on ne change rien et on ré-itère
