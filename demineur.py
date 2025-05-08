@@ -70,6 +70,9 @@ game_over_image = pygame.transform.scale(game_over_image, (largeur * taille_case
 win_screen = pygame.image.load("assets/win.png")
 win_screen = pygame.transform.scale(win_screen, (largeur * taille_case, hauteur * taille_case))
 
+regles = pygame.image.load("assets/regles.jpg")
+regles = pygame.transform.scale(regles, (largeur * taille_case, hauteur * taille_case))
+
 def creation_grille(longueur, largeur, nb_bombes):
     '''
     Parameters
@@ -295,24 +298,7 @@ def afficher_regles():
     '''
     Affiche un écran contenant les règles du jeu.
     '''
-    fenetre.fill((255, 255, 255))  # fond blanc
-
-    lignes = [
-        "RÈGLES DU DÉMINEUR",
-        "",
-        "- Le but est de révéler toutes les cases sans mines.",
-        "- Clic gauche : révéler une case.",
-        "- Clic droit : poser/enlever un drapeau.",
-        "- Les nombres indiquent le nombre de mines adjacentes.",
-        "- Gagne si toutes les cases sans mines sont révélées.",
-        "- Perds si tu cliques sur une mine.",
-        "",
-        "Appuie sur ESPACE pour revenir au jeu."
-    ]
-
-    for i, ligne in enumerate(lignes):
-        texte = font.render(ligne, True, (0, 0, 0))
-        fenetre.blit(texte, (20, 30 + i * 35))
+    fenetre.blit(regles, (0, 0))
 
     pygame.display.flip()
 
