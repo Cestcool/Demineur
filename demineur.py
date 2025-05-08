@@ -1,5 +1,6 @@
 from random import randint
 import pygame
+import csv
 
 # variables globales
 largeur = 10
@@ -72,6 +73,26 @@ win_screen = pygame.transform.scale(win_screen, (largeur * taille_case, hauteur 
 
 regles = pygame.image.load("assets/regles.jpg")
 regles = pygame.transform.scale(regles, (largeur * taille_case, hauteur * taille_case))
+
+def sauvegarder_partie(nom_fichier="sauvegarde.csv"):
+    with open(nom_fichier, mode='w', newline='') as fichier:
+        writer = csv.writer(fichier)
+        temps_ecoule = (pygame.time.get_ticks() - start_time) if chrono_lance else 0
+        writer.writerow([temps_ecoule, chrono_lance])
+        for ligne in grille:
+            writer.writerow(ligne)
+
+def charger_partie(nom_fichier="sauvegarde.csv"):
+    global grille, start_time, chrono_lance
+    with open(nom_fichier, mode='r') as fichier:
+        reader = csv.reader(fichier)
+        data = list(reader)
+        temps_ecoule = int(data[0][0])
+        chrono_lance = data[0][1] == 'True'
+        start_time = pygame.time.get_ticks() - temps_ecoule if chrono_lance else None
+        grille = []
+        for ligne in data[1:]:
+            grille.append([int(val) for val in ligne])
 
 def creation_grille(longueur, largeur, nb_bombes):
     '''
@@ -352,6 +373,11 @@ while running:                          # Boucle de jeu
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_h:  # touche H pour aide
                 afficher_regles()
+            if event.key == pygame.K_s:  # touche S pour sauvegarder
+                sauvegarder_partie()
+            if event.key == pygame.K_l:  # touche L pour charger
+                charger_partie()
+
 
 
     dessiner_grille()
