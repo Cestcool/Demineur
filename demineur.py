@@ -2,7 +2,7 @@ from random import randint
 import pygame
 import csv
 
-# variables globales
+# paramètres du jeu
 largeur = 10
 hauteur = 10
 nb_mines = 11
@@ -12,18 +12,18 @@ taille_case = 60
 pygame.init()
 fenetre = pygame.display.set_mode((largeur*taille_case, hauteur*taille_case))
 pygame.display.set_caption("Démineur")
-clock = pygame.time.Clock()
+horloge = pygame.time.Clock()
 running = True
 pygame.font.init()
-font = pygame.font.SysFont("Arial", 30)
-start_time = None
+police = pygame.font.SysFont("Arial", 30)
+depart = None   # temps écoulé au départ du chrono
 chrono_lance = False
 in_menu = True  # État du jeu : menu ou partie en cours
-play_button_rect = None
-rules_button_rect = None
-quitter_button_rect = None
+bouton_jouer_rect = None
+bouton_regles_rect = None
+bouton_quitter_rect = None
 
-# Import files
+# import des images
 spr_emptyGrid = pygame.transform.scale(pygame.image.load("assets/empty.png"), (taille_case, taille_case))
 spr_flag = pygame.transform.scale(pygame.image.load("assets/flag.png"), (taille_case, taille_case))
 spr_grid = pygame.transform.scale(pygame.image.load("assets/Grid.png"), (taille_case, taille_case))
@@ -48,40 +48,40 @@ quitter_button = pygame.transform.scale(pygame.image.load("assets/quitter.jpg"),
 def sauvegarder_partie(nom_fichier="sauvegarde.csv"):
     with open(nom_fichier, mode='w', newline='') as fichier:
         writer = csv.writer(fichier)
-        temps_ecoule = (pygame.time.get_ticks() - start_time) if chrono_lance else 0
+        temps_ecoule = (pygame.time.get_ticks() - depart) if chrono_lance else 0
         writer.writerow([temps_ecoule, chrono_lance])
         for ligne in grille:
             writer.writerow(ligne)
 
 def charger_partie(nom_fichier="sauvegarde.csv"):
-    global grille, start_time, chrono_lance
+    global grille, depart, chrono_lance # mot-clef global pour modifier les variables sans utiliser return
     with open(nom_fichier, mode='r') as fichier:
         reader = csv.reader(fichier)
         data = list(reader)
         temps_ecoule = int(data[0][0])
         chrono_lance = data[0][1] == 'True'
-        start_time = pygame.time.get_ticks() - temps_ecoule if chrono_lance else None
+        depart = pygame.time.get_ticks() - temps_ecoule if chrono_lance else None
         grille = []
         for ligne in data[1:]:
             grille.append([int(val) for val in ligne])
 
 def afficher_menu():
     """
-    Affiche le menu de démarrage avec un bouton pour lancer le jeu
+    Affiche le menu de démarrage avec les différents boutons
     """
     fenetre.fill((194, 194, 194))
     
     # Positionnement et affichage des boutons
-    play_button_rect = play_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*2-40))
-    fenetre.blit(play_button, play_button_rect)
-    rules_button_rect = rules_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*3-70))
-    fenetre.blit(rules_button, rules_button_rect)
-    quitter_button_rect = quitter_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*4-100))
-    fenetre.blit(quitter_button, quitter_button_rect)
+    bouton_jouer_rect = play_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*2-40))
+    fenetre.blit(play_button, bouton_jouer_rect)
+    bouton_regles_rect = rules_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*3-70))
+    fenetre.blit(rules_button, bouton_regles_rect)
+    bouton_quitter_rect = quitter_button.get_rect(center=(largeur * taille_case // 2, (hauteur * taille_case // 4)*4-100))
+    fenetre.blit(quitter_button, bouton_quitter_rect)
     fenetre.blit(titre, (-1, 20))
     
     pygame.display.flip()
-    return play_button_rect, rules_button_rect, quitter_button_rect  # Retourne le rectangle du bouton pour détecter les clics
+    return bouton_jouer_rect, bouton_regles_rect, bouton_quitter_rect  # Retourne le rectangle du bouton pour détecter les clics
 
 def creation_grille(largeur, hauteur, nb_bombes):
     '''
@@ -139,15 +139,15 @@ def cases_adjacentes(x, y):
     nb_bombes = 0
     cases_vides = []        # liste des cases vides adjacentes, qui serront testés après
     for i in range(-1, 2):  # parcours les cases autours pour connaitre leurs état
-    	for j in range(-1, 2):
-    	    if y+i >= 0 and x+j >= 0:
-	    	    try:
-	    	        if grille[x+j][y+i] == 2 or grille[x+j][y+i] == 4:
-	    	            nb_bombes += 1
-	    	        else:
-	    	            cases_vides.append([x+j, y+i])
-	    	    except IndexError:
-	    	        pass
+        for j in range(-1, 2):
+            if y+i >= 0 and x+j >= 0:
+                try:
+                    if grille[x+j][y+i] == 2 or grille[x+j][y+i] == 4:
+                        nb_bombes += 1
+                    else:
+                        cases_vides.append([x+j, y+i])
+                except IndexError:
+                    pass
 		
     return [nb_bombes, cases_vides]
 
@@ -168,45 +168,41 @@ def reveler(co: list):
     y = co[1]
     
     if grille[x][y] == 0:
-    	cases_adj = cases_adjacentes(x, y)
-    	if cases_adj[0] > 0:
-    	    grille[x][y] = cases_adj[0] * -1
-    	else:
-    	    grille[x][y] = 1
-    	    for i in cases_adj[1]:
-    	        reveler(i)
-    	    
-    	    
+        cases_adj = cases_adjacentes(x, y)
+        if cases_adj[0] > 0:
+            grille[x][y] = cases_adj[0] * -1
+        else:
+            grille[x][y] = 1
+            for i in cases_adj[1]:
+                reveler(i)
+
+
     if grille[x][y] == 2:
-    	game_over()
+        game_over()
 
 grille = creation_grille(largeur, hauteur, nb_mines)
-start_time = pygame.time.get_ticks()
+depart = pygame.time.get_ticks()
 
 # Fonction pour dessiner la grille
 def dessiner_grille():
     '''
     Dessine la grille de jeu avec pygame.
-
-    Returns
-    -------
-    None.
     '''
-    vide_count = 0      # compte les cases vides non revelees, pour savoir quand le joueur a gagné
+    vide_count = 0      # compte les cases vides non révélées, pour savoir quand le joueur a gagné
     for x in range(largeur):
         for y in range(hauteur):
             if grille[x][y] == 1:
-            	fenetre.blit(spr_emptyGrid, (x * taille_case, y * taille_case))
+                fenetre.blit(spr_emptyGrid, (x * taille_case, y * taille_case))
             elif grille[x][y] == 2:
-            	fenetre.blit(spr_grid, (x * taille_case, y * taille_case))
+                fenetre.blit(spr_grid, (x * taille_case, y * taille_case))
             elif grille[x][y] == 3 or grille[x][y] == 4:
                 if grille[x][y] == 3:
                     vide_count += 1
                 fenetre.blit(spr_flag, (x * taille_case, y * taille_case))
             elif grille[x][y] < 0:
-            	n = grille[x][y] * -1
-            	n -= 1
-            	fenetre.blit(spr_grid_num[n], (x * taille_case, y * taille_case))
+                n = grille[x][y] * -1
+                n -= 1
+                fenetre.blit(spr_grid_num[n], (x * taille_case, y * taille_case))
             elif grille[x][y] == 0:
                 vide_count += 1
                 fenetre.blit(spr_grid, (x * taille_case, y * taille_case))
@@ -217,46 +213,26 @@ def dessiner_grille():
 def gerer_clic_droit(x, y):
     '''
     Gère la pose/supression du drapeau. Ne mets pas le même type de drapeau sur une case vide et sur une bombe, pour que l'utilisateur puisse l'enlever.
-
-    Parameters
-    ----------
-    x : int
-        Abscisse du point.
-    y : int
-        Ordonnée du point.
-
-    Returns
-    -------
-    None.
-
     '''
     if grille[x][y] == 0:
-        grille[x][y] = 3		# flag sur rien
+        grille[x][y] = 3		# drapeau sur rien
     elif grille[x][y] == 2:
-    	grille[x][y] = 4		# flag sur bombe
+        grille[x][y] = 4		# drapeau sur bombe
     elif grille[x][y] == 3:
         grille[x][y] = 0
     elif grille[x][y] == 4:
-    	grille[x][y] = 2
-        
+        grille[x][y] = 2
+
 def afficher_chronometre():
     if chrono_lance == False:
         return
     
-    temps_ecoule = (pygame.time.get_ticks() - start_time) // 1000  # secondes
-    texte = font.render(f"{temps_ecoule}s", True, (255, 0, 0))
+    temps_ecoule = (pygame.time.get_ticks() - depart) // 1000  # secondes
+    texte = police.render(f"{temps_ecoule}s", True, (255, 0, 0))
     fenetre.blit(texte, (10, 10))
 
 
 def game_over():
-    '''
-    Affiche l'écran de game over
-
-    Returns
-    -------
-    None.
-
-    '''
     fenetre.blit(game_over_image, (0, 0))
     pygame.display.flip()
     done = False
@@ -268,23 +244,15 @@ def game_over():
                 if event.key == pygame.K_SPACE:
                     done = True
 
-        clock.tick(60)
+        horloge.tick(60)
         
     reset()
     
 def win():
-    '''
-    Affiche l'écran de victoire
-
-    Returns
-    -------
-    None.
-
-    '''
     fenetre.blit(win_screen, (0, 0))
     
-    temps_total = (pygame.time.get_ticks() - start_time) // 1000
-    texte_temps = font.render(f"Temps : {temps_total} s", True, (0, 0, 0))  # Texte noir
+    temps_total = (pygame.time.get_ticks() - depart) // 1000
+    texte_temps = police.render(f"Temps : {temps_total} s", True, (0, 0, 0))  # Texte noir
     texte_rect = texte_temps.get_rect(center=(largeur * taille_case // 2, hauteur * taille_case // 5))
     fenetre.blit(texte_temps, texte_rect)
     
@@ -298,14 +266,11 @@ def win():
                 if event.key == pygame.K_SPACE:
                     done = True
 
-        clock.tick(60)
+        horloge.tick(60)
         
     reset()
     
 def afficher_regles():
-    '''
-    Affiche un écran contenant les règles du jeu.
-    '''
     fenetre.blit(regles, (0, 0))
 
     pygame.display.flip()
@@ -319,15 +284,15 @@ def afficher_regles():
                 if event.key == pygame.K_SPACE:
                     en_attente = False
 
-    clock.tick(30)
+    horloge.tick(30)
 
 def reset():
     '''
     Recommence le jeu.
     '''
-    global grille, start_time, chrono_lance, in_menu # Ajout de in_menu
+    global grille, depart, chrono_lance, in_menu # utilisation du mot clef global, pour pouvoir réinitialiser les variables sans untilisation du mot-clef return
     grille = None
-    start_time = None
+    depart = None
     chrono_lance = False
     in_menu = True  # Retour au menu après reset
     fenetre.fill("black")
@@ -342,15 +307,15 @@ while running:
         if in_menu:
             # Gestion des événements dans le menu
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if play_button_rect and play_button_rect.collidepoint(event.pos):
+                if bouton_jouer_rect and bouton_jouer_rect.collidepoint(event.pos):
                     in_menu = False  # Sortie du menu
                     grille = creation_grille(largeur, hauteur, nb_mines)  # Initialisation du jeu
-                if rules_button_rect and rules_button_rect.collidepoint(event.pos):
+                if bouton_regles_rect and bouton_regles_rect.collidepoint(event.pos):
                     afficher_regles()
-                if quitter_button_rect and quitter_button_rect.collidepoint(event.pos):
+                if bouton_quitter_rect and bouton_quitter_rect.collidepoint(event.pos):
                     exit()
         else:
-            # Gestion des événements dans le jeu (code existant)
+            # Gestion des événements dans le jeu
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Clic gauche
                     x, y = event.pos
@@ -358,7 +323,7 @@ while running:
                     y_case = y // taille_case
                     if not chrono_lance:
                         chrono_lance = True
-                        start_time = pygame.time.get_ticks()
+                        depart = pygame.time.get_ticks()
                     reveler([x_case, y_case])
                 if event.button == 3:  # Clic droit
                     x, y = event.pos
@@ -376,12 +341,12 @@ while running:
     
     # Affichage selon l'état du jeu
     if in_menu:
-        play_button_rect, rules_button_rect, quitter_button_rect = afficher_menu()
+        bouton_jouer_rect, bouton_regles_rect, bouton_quitter_rect = afficher_menu()
     else:
         dessiner_grille()
         afficher_chronometre()
         pygame.display.flip()
     
-    clock.tick(60)
+    horloge.tick(60)
 
 pygame.quit()
